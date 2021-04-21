@@ -15,7 +15,7 @@ RUN \
    npx ng build --prod --output-path=out
 
 # Stage 2 - Build the backend
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS dotnet-build-env
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim-amd64 AS dotnet-build-env
 ARG TARGETPLATFORM
 ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
 ARG BUILDPLATFORM
@@ -58,21 +58,15 @@ ENV RDTCLIENT_BRANCH="main"
 RUN \
     mkdir -p /data/downloads /data/db || true && \
     echo "**** Updating package information ****" && \ 
-    apt-get update -y -qq
-
-RUN \
+    apt-get update -y -qq && \
     echo "**** Install pre-reqs ****" && \ 
     apt-get install -y -qq wget && \
-    apt-get install -y libc6 libgcc1 libgssapi-krb5-2 libssl1.1 libstdc++6 zlib1g libicu66
-
-RUN \
+    apt-get install -y libc6 libgcc1 libgssapi-krb5-2 libssl1.1 libstdc++6 zlib1g libicu66 && \
     echo "**** Installing dotnet ****" && \
     wget -q https://dot.net/v1/dotnet-install.sh && \
     chmod +x ./dotnet-install.sh && \
     bash ./dotnet-install.sh -c Current --runtime dotnet --install-dir /usr/share/dotnet && \
-    bash ./dotnet-install.sh -c Current --runtime aspnetcore --install-dir /usr/share/dotnet 
-
-RUN \
+    bash ./dotnet-install.sh -c Current --runtime aspnetcore --install-dir /usr/share/dotnet && \
     echo "**** Cleaning image ****" && \
     apt-get -y -qq -o Dpkg::Use-Pty=0 clean && apt-get -y -qq -o Dpkg::Use-Pty=0 purge && \
     echo "**** Setting permissions ****" && \
